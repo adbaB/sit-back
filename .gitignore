@@ -6,7 +6,6 @@
 
 ### NextJS ###
 # dependencies
-/node_modules
 /.pnp
 .pnp.js
 
@@ -127,6 +126,7 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+.env
 
 # Gatsby files
 .cache/
