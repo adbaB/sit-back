@@ -1,26 +1,51 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdateUserDto } from '../dto/update-user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { CreatedResponse } from '../../libs/responses';
+import { encryptPassword } from '../../utils/encryptPassword';
+import { CreateUserDto } from '../dto/user/create-user.dto';
+import { UserDto } from '../dto/user/user.dto';
+import { User } from '../entities/user.entity';
+import { PermissionsService } from './permissions.service';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto): string {
-    return `This action adds a new user ${createUserDto}`;
+  constructor(
+    @InjectRepository(User) private readonly userRepo: Repository<User>,
+    private readonly permissionsServices: PermissionsService,
+  ) {}
+
+  async create(dto: CreateUserDto): Promise<CreatedResponse<UserDto>> {
+    const permissions = await this.permissionsServices.findByIds(dto.permissions);
+    const password = await encryptPassword(dto.password);
+    const user = this.userRepo.create({
+      ...dto,
+      password,
+      permissions,
+    });
+    const savedUser = await this.userRepo.save(user);
+    const createdUser = this.buildUserDto(savedUser);
+    return {
+      data: createdUser,
+      status: 201,
+      message: 'User created successfully',
+    };
   }
 
-  findAll(): string {
-    return 'This action returns all users';
+  async findByUsername(username: string): Promise<UserDto> {
+    const user = await this.userRepo.findOneBy({ username });
+    return user ? this.buildUserDto(user) : null;
   }
 
-  findOne(id: number): string {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto): string {
-    return `This action updates a #${id} user ${updateUserDto}`;
-  }
-
-  remove(id: number): string {
-    return `This action removes a #${id} user`;
+  buildUserDto(user: User): UserDto {
+    return new UserDto()
+      .setId(user.id)
+      .setUsername(user.username)
+      .setFirstName(user.firstName)
+      .setLastName(user.lastName)
+      .setEmail(user.email)
+      .setIsActive(user.isActive)
+      .build();
   }
 }
