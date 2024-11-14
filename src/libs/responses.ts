@@ -3,3 +3,12 @@ export class CreatedResponse<E> {
   message: string;
   data: E;
 }
+
+export class LoginResponse {
+  status: number;
+  message: string;
+  data: {
+    accessToken: string;
+    refreshToken: string;
+  };
+}

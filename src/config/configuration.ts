@@ -12,5 +12,11 @@ export default registerAs('config', () => {
     mail: {
       port: parseInt(process.env.PORT, 10),
     },
+    jwt: {
+      secret: process.env.JWT_ACCESS_TOKEN_SECRET,
+      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+      refreshSecret: process.env.JWT_REFRESH_TOKEN_SECRET,
+      refreshExpiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN,
+    },
   };
 });

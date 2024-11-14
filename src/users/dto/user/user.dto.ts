@@ -1,4 +1,5 @@
 import { OmitType } from '@nestjs/mapped-types';
+import { Permission } from '../../entities/permission.entity';
 import { User } from '../../entities/user.entity';
 
 export class UserDto extends OmitType(User, [
@@ -8,7 +9,6 @@ export class UserDto extends OmitType(User, [
   'createdBy',
   'lastLoginAt',
   'updatedAt',
-  'permissions',
 ] as const) {
   setUsername(username: string): UserDto {
     this.username = username;
@@ -37,6 +37,11 @@ export class UserDto extends OmitType(User, [
 
   setIsActive(isActive: boolean): UserDto {
     this.isActive = isActive;
+    return this;
+  }
+
+  setPermissions(permissions: Permission[]): UserDto {
+    this.permissions = permissions;
     return this;
   }
 

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { CreatedResponse } from '../../libs/responses';
-import { encryptPassword } from '../../utils/encryptPassword';
+import { hashPassword } from '../../utils/bcrypt.utils';
 import { CreateUserDto } from '../dto/user/create-user.dto';
 import { UserDto } from '../dto/user/user.dto';
 import { User } from '../entities/user.entity';
@@ -18,7 +18,7 @@ export class UsersService {
 
   async create(dto: CreateUserDto): Promise<CreatedResponse<UserDto>> {
     const permissions = await this.permissionsServices.findByIds(dto.permissions);
-    const password = await encryptPassword(dto.password);
+    const password = await hashPassword(dto.password);
     const user = this.userRepo.create({
       ...dto,
       password,
@@ -33,9 +33,19 @@ export class UsersService {
     };
   }
 
+  async findWithPasswordByUsername(username: string): Promise<User> {
+    return this.userRepo.findOne({
+      where: { username },
+      relations: { permissions: true },
+    });
+  }
   async findByUsername(username: string): Promise<UserDto> {
     const user = await this.userRepo.findOneBy({ username });
     return user ? this.buildUserDto(user) : null;
+  }
+
+  validateUser(id: number): Promise<boolean> {
+    return this.userRepo.exists({ where: { id, isActive: true } });
   }
 
   buildUserDto(user: User): UserDto {
